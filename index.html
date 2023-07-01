@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>AlexRod858 Chat</title>
+  <style>
+    body {
+      margin: 0;
+      padding-bottom: 3rem;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+
+    #form {
+      background: rgba(0, 0, 0, 0.15);
+      padding: 0.25rem;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      height: 3rem;
+      box-sizing: border-box;
+      backdrop-filter: blur(10px);
+    }
+
+    #input {
+      border: none;
+      padding: 0 1rem;
+      flex-grow: 1;
+      border-radius: 2rem;
+      margin: 0.25rem;
+    }
+
+    #input:focus {
+      outline: none;
+    }
+
+    #form>button {
+      background: #333;
+      border: none;
+      padding: 0 1rem;
+      margin: 0.25rem;
+      border-radius: 3px;
+      outline: none;
+      color: #fff;
+    }
+
+    #messages {
+      list-style-type: none;
+      margin: 0;
+      padding: 0;
+    }
+
+    #messages>li {
+      padding: 0.5rem 1rem;
+    }
+
+    #messages>li:nth-child(odd) {
+      background: #efefef;
+    }
+
+    /* Estilos del menú de usuarios conectados */
+    #user-list {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 200px;
+      background-color: #f8f8f8;
+      padding: 1rem;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+
+    #user-list h3 {
+      margin-top: 0;
+      font-size: 18px;
+      text-align: center;
+    }
+
+    #user-list ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    #user-list li {
+      padding: 0.5rem;
+      margin-bottom: 0.5rem;
+      background-color: #e8e8e8;
+      border-radius: 3px;
+    }
+
+    #user-list li:last-child {
+      margin-bottom: 0;
+    }
+
+  </style>
+</head>
+
+<body>
+  <!-- -------------------------- -->
+  <ul id="messages"></ul>
+  <div id="user-list">
+    <h3>Usuarios conectados</h3>
+    <ul id="user-list-items"></ul>
+  </div>
+  <form id="form" action="">
+    <input id="input" autocomplete="off" /><button>Enviar</button>
+  </form>
+  <script src="/socket.io/socket.io.js"></script>
+
+  <script>
+    var socket = io();
+    var messages = document.getElementById('messages');
+    var form = document.getElementById('form');
+    var input = document.getElementById('input');
+    var userList = document.getElementById('user-list-items');
+
+    var userName = "usuario" + Math.floor(Math.random() * 100000);
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (input.value) {
+        var message = userName + ': ' + input.value;
+        socket.emit('chat message', message);
+        input.value = '';
+      }
+    });
+
+    socket.on('chat message', function (msg) {
+      var item = document.createElement('li');
+      item.textContent = msg;
+      messages.appendChild(item);
+      window.scrollTo(0, document.body.scrollHeight);
+    });
+
+    socket.on('user connected', function (users) {
+      updateUserList(users);
+    });
+
+    socket.on('user disconnected', function (users) {
+      updateUserList(users);
+    });
+
+    function updateUserList(users) {
+      userList.innerHTML = '';
+      for (var i = 0; i < users.length; i++) {
+        var userItem = document.createElement('li');
+        userItem.textContent = users[i];
+        userList.appendChild(userItem);
+      }
+    }
+
+    socket.emit('user connected', userName);
+  </script>
+  <script src="app.js"></script>
+</body>
+
+</html>
